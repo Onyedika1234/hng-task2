@@ -61,4 +61,14 @@ app.get("/strings/:string_value", (req, res) => {
   }
 });
 
+app.delete("/strings/:string_value", (req, res) => {
+  const { string_value } = req.params;
+  try {
+    db = db.filter((item) => item.value !== string_value);
+    res.status(204).json();
+  } catch (error) {
+    res.status(500).json({ success: false, error: "Error deleting report" });
+  }
+});
+
 app.listen(process.env.PORT || 3000, () => console.log("Server running..."));
