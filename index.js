@@ -21,8 +21,27 @@ app.use(express.json());
 
 let db = [];
 
+const checkAvail = (req, res, next) => {
+  const { value } = req.body;
+
+  const exist = db.find((item) => item.value === value);
+  if (exist)
+    return res
+      .status(409)
+      .json({ success: false, error: "String analysis already exists" });
+
+  next();
+};
+
+const validateQuery = (req, res, next) => {
+  const { query } = req.query;
+  if (!query || typeof query !== "string")
+    return res.status(400).send("Invalid query parameter");
+
+  next();
+};
 // Create string analysiers
-app.post("/strings", validate, (req, res) => {
+app.post("/strings", validate, checkAvail, (req, res) => {
   const { value } = req.body;
   const id = uuidv4();
   try {
@@ -63,6 +82,35 @@ app.get("/strings/:string_value", (req, res) => {
   }
 });
 
+const parseNaturalLanguageQuery = (query) => {
+  let filters = {};
+  const lowerQuery = query.toLowerCase();
+
+  if (lowerQuery.includes("palindrome")) {
+    filters.is_palindrome = true;
+  }
+  if (lowerQuery.includes("length greater than")) {
+    const match = lowerQuery.match(/length greater than (\d+)/);
+  }
+  if (lowerQuery.includes("single word")) {
+    filters.word_count = 1;
+  }
+  if (lowerQuery.includes("contains_character")) {
+    const match = lowerQuery.match(/contains_character (\w)/);
+    if (match) {
+      filters.contains_character = match[1];
+    }
+  }
+
+  return filters;
+};
+
+console.log(
+  parseNaturalLanguageQuery(
+    "Find palindromes with length greater than 5 that are a single word"
+  )
+);
+// Delete strings
 app.delete("/strings/:string_value", (req, res) => {
   const { string_value } = req.params;
   try {
@@ -100,6 +148,26 @@ app.get("/strings", (req, res) => {
       item.value.includes(contains_character)
   );
   res.status(200).json(filtered);
+});
+
+app.get("/strings/filter-by-natural-language", validateQuery, (req, res) => {
+  const { query } = req.query;
+  try {
+    const parsedFilters = parseNaturalLanguageQuery(query);
+
+    const filtered = db.filter((item) => {
+      for (let key in parsedFilters) {
+        if (item.properties[key] !== parsedFilters[key]) {
+          return false;
+        }
+      }
+      return true;
+    });
+
+    res.status(200).json(filtered);
+  } catch (error) {
+    res.status(500).json({ success: false, error: "Error filtering reports" });
+  }
 });
 
 app.listen(process.env.PORT || 3000, () => console.log("Server running..."));
