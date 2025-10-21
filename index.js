@@ -21,6 +21,7 @@ app.use(express.json());
 
 let db = [];
 
+// Create string analysiers
 app.post("/strings", validate, (req, res) => {
   const { value } = req.body;
   const id = uuidv4();
@@ -45,6 +46,7 @@ app.post("/strings", validate, (req, res) => {
   }
 });
 
+// Get specific string
 app.get("/strings/:string_value", (req, res) => {
   const { string_value } = req.params;
 
@@ -69,6 +71,35 @@ app.delete("/strings/:string_value", (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, error: "Error deleting report" });
   }
+});
+
+app.get("/strings", (req, res) => {
+  const {
+    is_palindrome,
+    min_length,
+    max_length,
+    word_count,
+    contains_character,
+  } = req.query;
+
+  if (
+    !is_palindrome ||
+    !min_length ||
+    !max_length ||
+    !word_count ||
+    !contains_character
+  )
+    return res.status(400).send("Invalid query parameters values or types");
+
+  const filtered = db.filter(
+    (item) =>
+      item.properties.is_palindrome.toString() === is_palindrome &&
+      item.properties.length >= parseInt(min_length) &&
+      item.properties.length <= parseInt(max_length) &&
+      item.properties.word_count === parseInt(word_count) &&
+      item.value.includes(contains_character)
+  );
+  res.status(200).json(filtered);
 });
 
 app.listen(process.env.PORT || 3000, () => console.log("Server running..."));
