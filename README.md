@@ -1,28 +1,25 @@
-# **String Analysis API** 🔍
+# 🚀 String Analyzer API
 
 ## Overview
 
-A robust Node.js Express API engineered to provide comprehensive string analysis capabilities. This backend service allows users to submit strings, obtain various analytical properties (such as length, palindrome status, word count, character frequency, and SHA256 hash), and manage these analyses through CRUD operations, including advanced filtering. Built using Express.js for routing and a simple in-memory database for persistence.
-
-## Key Project Features
-
-✨ **Comprehensive String Analysis**: Automatically calculates length, detects palindromes, counts words and special characters, determines character frequencies, and generates SHA256 hashes for any submitted string.
-💾 **Data Management**: Supports creation, retrieval, and deletion of string analysis reports.
-🔍 **Advanced Filtering**: Allows searching for string analyses based on properties like palindrome status, length range, word count, or character presence.
-🗣️ **Natural Language Query**: Includes an experimental endpoint to filter analyses using natural language prompts.
-🛡️ **Input Validation**: Ensures data integrity with middleware for validating string input.
+A robust Node.js Express.js backend API designed for comprehensive string analysis, featuring functionalities like palindrome detection, character frequency mapping, SHA256 hashing, and natural language query filtering. It provides a RESTful interface to process and retrieve string-related data, utilizing an in-memory database for efficient, transient storage of analysis reports.
 
 ## Features
 
-- `Express.js`: Powers the RESTful API endpoints and handles routing.
-- `CORS`: Manages Cross-Origin Resource Sharing for secure communication.
-- `Dotenv`: Facilitates loading environment variables for configuration.
-- `UUID`: Generates unique identifiers for each string analysis report.
-- `Crypto`: Utilized for generating secure SHA256 hashes of input strings.
+- **Express.js**: Building a high-performance and scalable RESTful API.
+- **Node.js**: Asynchronous and event-driven JavaScript runtime for efficient server operations.
+- **CORS**: Securely enabling Cross-Origin Resource Sharing for API accessibility.
+- **dotenv**: Managing environment-specific configurations securely and efficiently.
+- **SHA256 Hashing**: Generating unique, immutable identifiers for each string analysis report.
+- **In-Memory Database**: Providing efficient, transient storage for string analysis records.
+- **Input Validation**: Ensuring data integrity and preventing malformed requests through robust validation middleware.
+- **Natural Language Query Processing**: Offering advanced filtering capabilities for string data using human-readable queries.
+- **Detailed String Metrics**: Automatically computing length, word count, special character count, and character frequency maps.
+- **Palindrome Detection**: Identifying palindromic strings with a dedicated analytical function.
 
 ## Getting Started
 
-To get a local copy up and running, follow these simple steps.
+To get this String Analyzer API up and running locally, follow these steps.
 
 ### Installation
 
@@ -37,50 +34,59 @@ To get a local copy up and running, follow these simple steps.
 3.  **Install Dependencies**:
     ```bash
     npm install
-    # or
-    yarn install
     ```
-4.  **Start the Development Server**:
-    ```bash
-    npm run dev
-    # or to run without nodemon
-    node index.js
-    ```
-    The server will typically run on `http://localhost:3000` or the port specified in your `.env` file.
 
 ### Environment Variables
 
-Create a `.env` file in the root of your project and add the following variable:
+Create a `.env` file in the root of the project and define the following variable:
 
+- `PORT`: The port number on which the server will listen.
+  _Example_:
+  ```
+  PORT=3000
+  ```
+
+## Usage
+
+After installation and setting up environment variables, you can start the server.
+
+To run the server in development mode (with Nodemon for automatic restarts):
+
+```bash
+npm run dev
 ```
-PORT=3000
+
+To run the server in production mode:
+
+```bash
+npm start
 ```
 
-- `PORT`: The port on which the server will listen. Defaults to `3000` if not specified.
+Once the server is running, you can interact with the API using tools like cURL, Postman, or your preferred HTTP client.
 
-## Technologies Used
+_Example - Creating a string analysis report:_
 
-| Technology   | Version  | Description                                     |
-| :----------- | :------- | :---------------------------------------------- |
-| `Node.js`    | ^18.x    | JavaScript runtime environment                  |
-| `Express.js` | ^5.1.0   | Web application framework                       |
-| `dotenv`     | ^17.2.3  | Loads environment variables from `.env` file    |
-| `cors`       | ^2.8.5   | Provides middleware for CORS                    |
-| `uuid`       | ^13.0.0  | For generating RFC4122 UUIDs                    |
-| `crypto`     | Built-in | Node.js built-in module for hashing             |
-| `nodemon`    | ^3.1.10  | Auto-restarts server on file changes (dev only) |
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"value": "madam"}' http://localhost:3000/strings
+```
+
+_Example - Retrieving a string analysis report:_
+
+```bash
+curl http://localhost:3000/strings/madam
+```
 
 ## API Documentation
 
 ### Base URL
 
-`http://localhost:3000` (or your configured port)
+`http://localhost:[PORT]`
 
 ### Endpoints
 
 #### POST /strings
 
-Creates a new string analysis report.
+Creates a new string analysis report and stores it in the in-memory database.
 
 **Request**:
 
@@ -90,27 +96,21 @@ Creates a new string analysis report.
 }
 ```
 
-- `value`: The string to be analyzed. (Required, string)
-
 **Response**:
 
 ```json
 {
-  "id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
-  "value": "Hello World",
+  "id": "e63a3d5b78b9c0d1e2f3a4b5c6d7e8f90123456789abcdef0123456789abcdef",
+  "value": "madam",
   "properties": {
-    "length": 11,
-    "is_palindrome": false,
+    "length": 5,
+    "is_palindrome": true,
     "unique_characters": 0,
-    "word_count": 2,
-    "sha256_code": "a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b27796ad9f146e",
+    "word_count": 1,
+    "sha256_code": "e63a3d5b78b9c0d1e2f3a4b5c6d7e8f90123456789abcdef0123456789abcdef",
     "character_frequency_map": {
-      "h": 1,
-      "e": 1,
-      "l": 3,
-      "o": 2,
-      "w": 1,
-      "r": 1,
+      "m": 2,
+      "a": 2,
       "d": 1
     }
   },
@@ -120,37 +120,33 @@ Creates a new string analysis report.
 
 **Errors**:
 
-- `400 Bad Request`: `{ "success": false, "error": "No data provided" }` (if `value` is missing)
-- `422 Unprocessable Entity`: `{ "success": false, "error": "Data must be a string" }` (if `value` is not a string)
-- `409 Conflict`: `{ "success": false, "error": "String analysis already exists" }` (if `value` already exists in the database)
-- `500 Internal Server Error`: `{ "success": false, "error": "Error creating report" }`
+- `400 Bad Request`: No data provided.
+- `422 Unprocessable Entity`: Data must be a string.
+- `409 Conflict`: String analysis already exists.
+- `500 Internal Server Error`: Error creating report.
 
 #### GET /strings/:string_value
 
-Retrieves a specific string analysis report by its value.
+Retrieves a specific string analysis report by its `value`.
 
 **Request**:
-(None, `string_value` is a path parameter)
+No request body required. `string_value` is passed as a URL parameter.
 
 **Response**:
 
 ```json
 {
-  "id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
-  "value": "Hello World",
+  "id": "e63a3d5b78b9c0d1e2f3a4b5c6d7e8f90123456789abcdef0123456789abcdef",
+  "value": "madam",
   "properties": {
-    "length": 11,
-    "is_palindrome": false,
+    "length": 5,
+    "is_palindrome": true,
     "unique_characters": 0,
-    "word_count": 2,
-    "sha256_code": "a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b27796ad9f146e",
+    "word_count": 1,
+    "sha256_code": "e63a3d5b78b9c0d1e2f3a4b5c6d7e8f90123456789abcdef0123456789abcdef",
     "character_frequency_map": {
-      "h": 1,
-      "e": 1,
-      "l": 3,
-      "o": 2,
-      "w": 1,
-      "r": 1,
+      "m": 2,
+      "a": 2,
       "d": 1
     }
   },
@@ -160,183 +156,167 @@ Retrieves a specific string analysis report by its value.
 
 **Errors**:
 
-- `404 Not Found`: `{ "success": false, "error": "Report not found" }`
-- `500 Internal Server Error`: `{ "success": false, "error": "Error fetching report" }`
+- `404 Not Found`: String does not exist in the system.
+- `500 Internal Server Error`: Error fetching report.
 
 #### DELETE /strings/:string_value
 
-Deletes a string analysis report by its value.
+Deletes a specific string analysis report by its `value`.
 
 **Request**:
-(None, `string_value` is a path parameter)
+No request body required. `string_value` is passed as a URL parameter.
 
 **Response**:
-`204 No Content` (Successful deletion with no response body)
+`204 No Content` (Successful deletion with no content returned).
 
 **Errors**:
 
-- `500 Internal Server Error`: `{ "success": false, "error": "Error deleting report" }`
+- `404 Not Found`: String does not exist in the system.
+- `500 Internal Server Error`: Error deleting report.
 
 #### GET /strings
 
-Retrieves a list of string analysis reports with filtering capabilities based on specific properties.
+Retrieves a list of string analysis reports filtered by specific query parameters. All query parameters are mandatory for this endpoint.
 
 **Request**:
 Query Parameters:
 
-- `is_palindrome`: Filter by palindrome status (`true` or `false` as string). (Required)
-- `min_length`: Minimum length of the string. (Required, number as string)
-- `max_length`: Maximum length of the string. (Required, number as string)
-- `word_count`: Exact word count of the string. (Required, number as string)
-- `contains_character`: Filter by strings containing a specific character. (Required, string)
+- `is_palindrome`: `true` or `false` (string boolean)
+- `min_length`: Minimum length (integer)
+- `max_length`: Maximum length (integer)
+- `word_count`: Exact word count (integer)
+- `contains_character`: A character the string must contain (string)
 
 **Response**:
 
 ```json
-[
-  {
-    "id": "f2e3d4c5-b6a7-8901-2345-67890abcdef0",
-    "value": "madam",
-    "properties": {
-      "length": 5,
-      "is_palindrome": true,
-      "unique_characters": 0,
-      "word_count": 1,
-      "sha256_code": "d4b005e834927f1cfd74e304892c5567b55f190e292022416b7f334a17387498",
-      "character_frequency_map": {
-        "m": 2,
-        "a": 2,
-        "d": 1
-      }
-    },
-    "created_at": "2023-10-27T10:05:00.000Z"
+{
+  "data": [
+    {
+      "id": "e63a3d5b78b9c0d1e2f3a4b5c6d7e8f90123456789abcdef0123456789abcdef",
+      "value": "madam",
+      "properties": {
+        "length": 5,
+        "is_palindrome": true,
+        "unique_characters": 0,
+        "word_count": 1,
+        "sha256_code": "e63a3d5b78b9c0d1e2f3a4b5c6d7e8f90123456789abcdef0123456789abcdef",
+        "character_frequency_map": {
+          "m": 2,
+          "a": 2,
+          "d": 1
+        }
+      },
+      "created_at": "2023-10-27T10:00:00.000Z"
+    }
+  ],
+  "count": 1,
+  "filters_applied": {
+    "is_palindrome": true,
+    "min_length": "1",
+    "max_length": "10",
+    "word_count": "1",
+    "contains_character": "a"
   }
-]
+}
 ```
 
 **Errors**:
 
-- `400 Bad Request`: `Invalid query parameters values or types` (if any required query parameter is missing or has an invalid type)
-- `500 Internal Server Error`: `{ "success": false, "error": "Error filtering reports" }`
+- `400 Bad Request`: Missing query parameters.
+- `500 Internal Server Error`: Error filtering reports (not explicitly handled in code, but good to anticipate).
 
 #### GET /strings/filter-by-natural-language
 
-Retrieves a list of string analysis reports by parsing a natural language query.
+Filters string analysis reports based on a natural language query.
 
 **Request**:
-Query Parameter:
+Query Parameters:
 
-- `query`: A natural language string describing the desired filters (e.g., "Find palindromes with length greater than 5 that are a single word"). (Required, string)
+- `query`: A natural language string for filtering (e.g., "palindromic strings longer than 3 containing the letter z").
 
 **Response**:
 
 ```json
-[
-  {
-    "id": "g3h4i5j6-k7l8-9012-3456-7890abcdef12",
-    "value": "racecar",
-    "properties": {
-      "length": 7,
+{
+  "filtered": [
+    {
+      "id": "e63a3d5b78b9c0d1e2f3a4b5c6d7e8f90123456789abcdef0123456789abcdef",
+      "value": "madam",
+      "properties": {
+        "length": 5,
+        "is_palindrome": true,
+        "unique_characters": 0,
+        "word_count": 1,
+        "sha256_code": "e63a3d5b78b9c0d1e2f3a4b5c6d7e8f90123456789abcdef0123456789abcdef",
+        "character_frequency_map": {
+          "m": 2,
+          "a": 2,
+          "d": 1
+        }
+      },
+      "created_at": "2023-10-27T10:00:00.000Z"
+    }
+  ],
+  "count": 1,
+  "interpreted_query": {
+    "original": "palindromic strings longer than 3",
+    "parsed_filters": {
       "is_palindrome": true,
-      "unique_characters": 0,
-      "word_count": 1,
-      "sha256_code": "729227c191a18d172e259e31d4d620593b4f620f46c3b6f0e3f2e1b1d1f0e2d3",
-      "character_frequency_map": {
-        "r": 2,
-        "a": 2,
-        "c": 2,
-        "e": 1
-      }
-    },
-    "created_at": "2023-10-27T10:10:00.000Z"
+      "min_length": 4
+    }
   }
-]
+}
 ```
 
 **Errors**:
 
-- `400 Bad Request`: `Invalid query parameter` (if `query` is missing or not a string)
-- `500 Internal Server Error`: `{ "success": false, "error": "Error filtering reports" }`
+- `400 Bad Request`: Unable to parse natural language query (missing `query` parameter).
+- `422 Unprocessable Entity`: Query parsed but resulted in conflicting filters (query is not a string).
+- `500 Internal Server Error`: Error filtering reports.
 
-## Usage Examples
+## Technologies Used
 
-Here are some examples of how to interact with the String Analysis API using `curl`.
-
-### Create a String Analysis
-
-```bash
-curl -X POST \
-  http://localhost:3000/strings \
-  -H 'Content-Type: application/json' \
-  -d '{
-        "value": "Hello World"
-      }'
-```
-
-### Create a Palindrome String Analysis
-
-```bash
-curl -X POST \
-  http://localhost:3000/strings \
-  -H 'Content-Type: application/json' \
-  -d '{
-        "value": "madam"
-      }'
-```
-
-### Get a Specific String Analysis
-
-```bash
-curl -X GET \
-  http://localhost:3000/strings/Hello%20World
-```
-
-### Filter String Analyses
-
-Filter for palindromes with a word count of 1, length between 1 and 10, containing the character 'a'.
-
-```bash
-curl -X GET \
-  "http://localhost:3000/strings?is_palindrome=true&min_length=1&max_length=10&word_count=1&contains_character=a"
-```
-
-### Filter with Natural Language
-
-```bash
-curl -X GET \
-  "http://localhost:3000/strings/filter-by-natural-language?query=Find%20palindromes%20that%20are%20a%20single%20word"
-```
-
-### Delete a String Analysis
-
-```bash
-curl -X DELETE \
-  http://localhost:3000/strings/Hello%20World
-```
+| Technology     | Description                                                                 | Link                                                             |
+| :------------- | :-------------------------------------------------------------------------- | :--------------------------------------------------------------- |
+| **Node.js**    | JavaScript runtime built on Chrome's V8 JavaScript engine.                  | [nodejs.org](https://nodejs.org/)                                |
+| **Express.js** | Fast, unopinionated, minimalist web framework for Node.js.                  | [expressjs.com](https://expressjs.com/)                          |
+| **dotenv**     | Loads environment variables from a `.env` file.                             | [npmjs.com/package/dotenv](https://www.npmjs.com/package/dotenv) |
+| **cors**       | Provides a Connect/Express middleware for CORS.                             | [npmjs.com/package/cors](https://www.npmjs.com/package/cors)     |
+| **uuid**       | For the creation of RFC4122 UUIDs.                                          | [npmjs.com/package/uuid](https://www.npmjs.com/package/uuid)     |
+| **nodemon**    | Automatically restarts the node application when file changes are detected. | [nodemon.io](https://nodemon.io/)                                |
 
 ## Contributing
 
-Contributions are welcome! If you have suggestions for improvements or want to report a bug, please follow these steps:
+We welcome contributions to the String Analyzer API! If you're interested in improving this project, please follow these guidelines:
 
-🐛 **Report a Bug**: Open an issue describing the bug and steps to reproduce.
-💡 **Suggest a Feature**: Open an issue detailing your proposed feature.
-🛠️ **Submit a Pull Request**: 1. Fork the repository. 2. Create a new branch (`git checkout -b feature/your-feature-name`). 3. Make your changes and ensure tests pass (if any). 4. Commit your changes (`git commit -m 'feat: Add new feature'`). 5. Push to the branch (`git push origin feature/your-feature-name`). 6. Open a pull request describing your changes.
+✨ **Fork the Repository**: Start by forking the project to your own GitHub account.
 
-Please ensure your code adheres to the project's coding style and includes appropriate documentation.
+🌿 **Create a New Branch**: Create a new branch for your feature or bug fix:
+`git checkout -b feature/your-feature-name` or `bugfix/issue-description`
+
+💡 **Implement Your Changes**: Write clean, well-documented code.
+
+✅ **Test Your Changes**: Ensure your changes don't introduce new issues and existing functionalities remain intact.
+
+⬆️ **Commit and Push**: Commit your changes with a clear message and push them to your forked repository.
+
+➡️ **Open a Pull Request**: Submit a pull request to the `main` branch of this repository, describing your changes and their benefits.
 
 ## License
 
-This project is open-sourced under the ISC License.
+This project is licensed under the ISC License. See the [SPDX License List](https://spdx.org/licenses/ISC.html) for more details.
 
-## Author Info
+## Author
 
-👋 **Your Name**
+**Onyedika**
 
-- LinkedIn: [Your LinkedIn Profile](https://linkedin.com/in/your_username)
-- Twitter: [@your_twitter_handle](https://twitter.com/your_twitter_handle)
+- **LinkedIn**: [Your LinkedIn Profile](https://linkedin.com/in/onyedika)
+- **Twitter**: [Your Twitter Handle](https://twitter.com/onyedika)
+- **Portfolio**: [Your Portfolio Website](https://your-portfolio.com)
 
-## Badges
+---
 
-[![Node.js](https://img.shields.io/badge/Node.js-18.x-green?logo=node.js)](https://nodejs.org/)
-[![Express.js](https://img.shields.io/badge/Express.js-5.x-blue?logo=express)](https://expressjs.com/)
+[![Node.js](https://img.shields.io/badge/Node.js-18.x-green.svg)](https://nodejs.org/en/)
+[![Express.js](https://img.shields.io/badge/Express.js-5.x-blue.svg)](https://expressjs.com/)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)

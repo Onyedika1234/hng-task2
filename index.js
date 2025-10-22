@@ -35,18 +35,93 @@ const checkAvail = (req, res, next) => {
 
 const validateQuery = (req, res, next) => {
   const { query } = req.query;
-  if (!query || typeof query !== "string")
-    return res.status(400).send("Invalid query parameter");
+  if (!query)
+    return res.status(400).send("Unable to parse natural language query");
 
+  if (typeof query !== "string")
+    return res
+      .status(422)
+      .send("Query parsed but resulted in conflicting filters");
   next();
 };
+
+const parseNaturalLanguageQuery = (query) => {
+  let filters = {};
+  const lowerQuery = query.toLowerCase();
+
+  if (lowerQuery.includes("palindromic")) {
+    filters.is_palindrome = true;
+  }
+  if (lowerQuery.includes("longer than")) {
+    const match = lowerQuery.match(/longer than (\d+)/);
+    if (match) {
+      filters.min_length = parseInt(match[1]) + 1;
+    }
+  }
+  if (lowerQuery.includes("single word")) {
+    filters.word_count = 1;
+  }
+  if (lowerQuery.includes("first vowel")) {
+    filters.contains_character = "a";
+  }
+  if (lowerQuery.includes("containing the letter z")) {
+    filters.contains_character = "z";
+  }
+
+  return filters;
+};
+
 // Create string analysiers
+
+app.get("/strings/filter-by-natural-language", validateQuery, (req, res) => {
+  const { query } = req.query;
+  try {
+    const parsedFilters = parseNaturalLanguageQuery(query);
+
+    const filtered = db.filter((item) => {
+      for (let key in parsedFilters) {
+        if (item.properties[key] !== parsedFilters[key]) {
+          return false;
+        }
+      }
+      return true;
+    });
+
+    res.status(200).json({
+      filtered,
+      count: filtered.length,
+      interpreted_query: {
+        original: query,
+        parsed_filters: parsedFilters,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "Error filtering reports" });
+  }
+});
+
+// Get specific string
+app.get("/strings/:string_value", (req, res) => {
+  const { string_value } = req.params;
+
+  try {
+    const record = db.find((item) => item.value === string_value);
+    if (!record)
+      return res
+        .status(404)
+        .json({ success: false, error: "String does not exist in the system" });
+
+    res.status(200).json(record);
+  } catch (error) {
+    res.status(500).json({ success: false, error: "Error fetching report" });
+  }
+});
+
 app.post("/strings", validate, checkAvail, (req, res) => {
   const { value } = req.body;
-  const id = uuidv4();
   try {
     const resBody = {
-      id,
+      id: generatesha(value),
       value,
       properties: {
         length: getLength(value),
@@ -65,57 +140,19 @@ app.post("/strings", validate, checkAvail, (req, res) => {
   }
 });
 
-// Get specific string
-app.get("/strings/:string_value", (req, res) => {
-  const { string_value } = req.params;
-
-  try {
-    const record = db.find((item) => item.value === string_value);
-    if (!record)
-      return res
-        .status(404)
-        .json({ success: false, error: "Report not found" });
-
-    res.status(200).json(record);
-  } catch (error) {
-    res.status(500).json({ success: false, error: "Error fetching report" });
-  }
-});
-
-const parseNaturalLanguageQuery = (query) => {
-  let filters = {};
-  const lowerQuery = query.toLowerCase();
-
-  if (lowerQuery.includes("palindrome")) {
-    filters.is_palindrome = true;
-  }
-  if (lowerQuery.includes("length greater than")) {
-    const match = lowerQuery.match(/length greater than (\d+)/);
-  }
-  if (lowerQuery.includes("single word")) {
-    filters.word_count = 1;
-  }
-  if (lowerQuery.includes("contains_character")) {
-    const match = lowerQuery.match(/contains_character (\w)/);
-    if (match) {
-      filters.contains_character = match[1];
-    }
-  }
-
-  return filters;
-};
-
-console.log(
-  parseNaturalLanguageQuery(
-    "Find palindromes with length greater than 5 that are a single word"
-  )
-);
 // Delete strings
 app.delete("/strings/:string_value", (req, res) => {
   const { string_value } = req.params;
   try {
+    const record = db.find((item) => item.value === string_value);
+
+    if (!record)
+      return res
+        .status(404)
+        .json({ success: false, error: "String does not exist in the system" });
+
     db = db.filter((item) => item.value !== string_value);
-    res.status(204).json();
+    res.sendStatus(204);
   } catch (error) {
     res.status(500).json({ success: false, error: "Error deleting report" });
   }
@@ -137,7 +174,9 @@ app.get("/strings", (req, res) => {
     !word_count ||
     !contains_character
   )
-    return res.status(400).send("Invalid query parameters values or types");
+    return res
+      .status(400)
+      .json({ success: false, error: "Missing query parameters" });
 
   const filtered = db.filter(
     (item) =>
@@ -147,27 +186,17 @@ app.get("/strings", (req, res) => {
       item.properties.word_count === parseInt(word_count) &&
       item.value.includes(contains_character)
   );
-  res.status(200).json(filtered);
-});
-
-app.get("/strings/filter-by-natural-language", validateQuery, (req, res) => {
-  const { query } = req.query;
-  try {
-    const parsedFilters = parseNaturalLanguageQuery(query);
-
-    const filtered = db.filter((item) => {
-      for (let key in parsedFilters) {
-        if (item.properties[key] !== parsedFilters[key]) {
-          return false;
-        }
-      }
-      return true;
-    });
-
-    res.status(200).json(filtered);
-  } catch (error) {
-    res.status(500).json({ success: false, error: "Error filtering reports" });
-  }
+  res.status(200).json({
+    data: filtered,
+    count: filtered.length,
+    filters_applied: {
+      is_palindrome: true,
+      min_length,
+      max_length,
+      word_count,
+      contains_character,
+    },
+  });
 });
 
 app.listen(process.env.PORT || 3000, () => console.log("Server running..."));
