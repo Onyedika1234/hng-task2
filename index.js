@@ -128,7 +128,7 @@ app.post("/strings", validate, checkAvail, (req, res) => {
         is_palindrome: isPalindrome(value),
         unique_characters: specialCharacters(value),
         word_count: wordCount(value),
-        sha256_code: generatesha(value),
+        sha256_hash: generatesha(value),
         character_frequency_map: letterFrequency(value),
       },
       created_at: new Date().toISOString(),
@@ -158,6 +158,32 @@ app.delete("/strings/:string_value", (req, res) => {
   }
 });
 
+const filteredString = (query) => {
+  let result = db;
+
+  if (query.min_length !== undefined) {
+    result = result.filter((str) => str.properties.length >= query.min_length);
+  }
+  if (query.max_length !== undefined) {
+    result = result.filter((str) => str.properties.length <= query.max_length);
+  }
+  if (query.is_palindrome !== undefined) {
+    result = result.filter(
+      (str) => str.properties.is_palindrome == query.is_palindrome
+    );
+  }
+  if (query.word_count !== undefined) {
+    result = result.filter(
+      (str) => str.properties.word_count === query.word_count
+    );
+  }
+  if (query.contains_character !== undefined) {
+    result = result.filter((str) =>
+      str.value.includes(query.contains_character.toLowerCase())
+    );
+  }
+  return result;
+};
 app.get("/strings", (req, res) => {
   const {
     is_palindrome,
@@ -167,36 +193,31 @@ app.get("/strings", (req, res) => {
     contains_character,
   } = req.query;
 
-  if (
-    !is_palindrome ||
-    !min_length ||
-    !max_length ||
-    !word_count ||
-    !contains_character
-  )
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing query parameters" });
+  try {
+    const query = {
+      min_length: min_length ? parseInt(min_length) : undefined,
+      max_length: max_length ? parseInt(max_length) : undefined,
+      is_palindrome:
+        is_palindrome !== undefined ? is_palindrome === "true" : undefined,
+      word_count: word_count ? parseInt(word_count) : undefined,
+      contains_character: contains_character ? contains_character : undefined,
+    };
 
-  const filtered = db.filter(
-    (item) =>
-      item.properties.is_palindrome.toString() === is_palindrome &&
-      item.properties.length >= parseInt(min_length) &&
-      item.properties.length <= parseInt(max_length) &&
-      item.properties.word_count === parseInt(word_count) &&
-      item.value.includes(contains_character)
-  );
-  res.status(200).json({
-    data: filtered,
-    count: filtered.length,
-    filters_applied: {
-      is_palindrome: true,
-      min_length,
-      max_length,
-      word_count,
-      contains_character,
-    },
-  });
+    const filtered = filteredString(query);
+    res.status(200).json({
+      data: filtered,
+      count: filtered.length,
+      filters_applied: {
+        is_palindrome,
+        min_length,
+        max_length,
+        word_count,
+        contains_character,
+      },
+    });
+  } catch (error) {
+    res.status(400).json({ error: "Invalid query parameter values or types" });
+  }
 });
 
 app.listen(process.env.PORT || 3000, () => console.log("Server running..."));
