@@ -307,13 +307,9 @@ We welcome contributions to the String Analyzer API! If you're interested in imp
 
 This project is licensed under the ISC License. See the [SPDX License List](https://spdx.org/licenses/ISC.html) for more details.
 
-## Author
-
-**Onyedika**
-
-- **LinkedIn**: [Your LinkedIn Profile](https://linkedin.com/in/onyedika)
-- **Twitter**: [Your Twitter Handle](https://twitter.com/onyedika)
-- **Portfolio**: [Your Portfolio Website](https://your-portfolio.com)
+- **Author**: Nnagbo Onyedika Emmanuel
+- **LinkedIn**: https://www.linkedin.com/in/onyedika-nnagbo-772095341/
+- **Twitter**: https://x.com/OnyedikaN59023
 
 ---
 

@@ -9,8 +9,7 @@ import {
   specialCharacters,
   letterFrequency,
   generatesha,
-} from "./controller/string.controller.js";
-import { v4 as uuidv4 } from "uuid";
+} from "./controller/string.controller.js";d
 dotenv.config();
 
 const app = express();
